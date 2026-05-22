@@ -3,10 +3,18 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const disposeGeometry = vi.fn()
 const disposeMaterial = vi.fn()
 const markerControlsConstructor = vi.fn()
+let createdMarkerControls: unknown = null
+
+function captureMarkerControls(instance: unknown) {
+  createdMarkerControls = instance
+}
 
 vi.mock('@/vendor/ar-js/ar-threex.mjs', () => ({
   ArMarkerControls: class ArMarkerControls {
+    readonly markerControlsMock = true
+
     constructor(...args: unknown[]) {
+      captureMarkerControls(this)
       markerControlsConstructor(...args)
     }
   },
@@ -15,6 +23,7 @@ vi.mock('@/vendor/ar-js/ar-threex.mjs', () => ({
 describe('useMarkerRoot', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    createdMarkerControls = null
   })
 
   it('creates a hidden marker root with a cube child', async () => {
@@ -71,6 +80,54 @@ describe('useMarkerRoot', () => {
     marker.setVisible(false)
     expect(marker.visible.value).toBe(false)
     expect(marker.root?.visible).toBe(false)
+  })
+
+  it('syncs visibility from AR.js markerFound and markerLost events', async () => {
+    const THREE = await import('three')
+    const { useMarkerRoot } = await import('../useMarkerRoot')
+    const scene = new THREE.Scene()
+    const marker = useMarkerRoot()
+
+    await marker.create(scene, {} as never)
+
+    window.dispatchEvent(new CustomEvent('markerFound', { detail: createdMarkerControls }))
+
+    expect(marker.visible.value).toBe(true)
+    expect(marker.root?.visible).toBe(true)
+
+    window.dispatchEvent(new CustomEvent('markerLost', { detail: createdMarkerControls }))
+
+    expect(marker.visible.value).toBe(false)
+    expect(marker.root?.visible).toBe(false)
+  })
+
+  it('ignores marker lifecycle events for other marker controls', async () => {
+    const THREE = await import('three')
+    const { useMarkerRoot } = await import('../useMarkerRoot')
+    const scene = new THREE.Scene()
+    const marker = useMarkerRoot()
+
+    await marker.create(scene, {} as never)
+
+    window.dispatchEvent(new CustomEvent('markerFound', { detail: { other: true } }))
+
+    expect(marker.visible.value).toBe(false)
+    expect(marker.root?.visible).toBe(false)
+  })
+
+  it('removes marker lifecycle listeners on dispose', async () => {
+    const THREE = await import('three')
+    const { useMarkerRoot } = await import('../useMarkerRoot')
+    const scene = new THREE.Scene()
+    const marker = useMarkerRoot()
+
+    await marker.create(scene, {} as never)
+    marker.dispose()
+
+    window.dispatchEvent(new CustomEvent('markerFound', { detail: createdMarkerControls }))
+
+    expect(marker.visible.value).toBe(false)
+    expect(marker.root).toBeNull()
   })
 
   it('disposes cube resources and removes the root from the scene', async () => {
