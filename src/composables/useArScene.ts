@@ -2,8 +2,11 @@ import type { CameraLifecycleState } from './ar/useCameraLifecycle'
 import { readonly, ref } from 'vue'
 import { useArRenderer } from './ar/useArRenderer'
 import { useCameraLifecycle } from './ar/useCameraLifecycle'
+import { useMarkerRoot } from './ar/useMarkerRoot'
 
 export type ArSceneState = CameraLifecycleState
+
+const cameraParametersUrl = '/ar-js/camera_para.dat'
 
 export function useArScene() {
   const state = ref<ArSceneState>('idle')
@@ -11,6 +14,7 @@ export function useArScene() {
 
   const renderer = useArRenderer()
   const camera = useCameraLifecycle()
+  const marker = useMarkerRoot()
 
   async function start(container: HTMLElement) {
     state.value = 'requesting'
@@ -19,6 +23,28 @@ export function useArScene() {
     try {
       renderer.mount(container)
       await camera.start()
+
+      const { ArToolkitContext } = await import('@/vendor/ar-js/ar-threex.mjs')
+      const context = new ArToolkitContext({
+        cameraParametersUrl,
+        detectionMode: 'mono',
+      })
+
+      await new Promise<void>((resolve) => {
+        context.init(() => {
+          renderer.camera.projectionMatrix.copy(context.getProjectionMatrix())
+          resolve()
+        })
+      })
+
+      await marker.create(renderer.scene, context)
+      renderer.startLoop(() => {
+        if (!camera.source.value?.ready || !camera.sourceElement.value)
+          return
+
+        context.update(camera.sourceElement.value)
+      })
+
       state.value = 'ready'
     }
     catch (cause) {
@@ -31,6 +57,7 @@ export function useArScene() {
   function stop() {
     renderer.stopLoop()
     camera.stop()
+    marker.dispose()
     renderer.dispose()
 
     if (state.value !== 'error')
