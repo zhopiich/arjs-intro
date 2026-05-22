@@ -15,6 +15,7 @@ export function useArScene() {
   const renderer = useArRenderer()
   const camera = useCameraLifecycle()
   const marker = useMarkerRoot()
+  let resizeTarget: HTMLElement | null = null
 
   async function start(container: HTMLElement) {
     state.value = 'requesting'
@@ -38,6 +39,9 @@ export function useArScene() {
       })
 
       await marker.create(renderer.scene, context)
+      resizeTarget = container
+      syncSize()
+      window.addEventListener('resize', syncSize)
       renderer.startLoop(() => {
         if (!camera.source.value?.ready || !camera.sourceElement.value)
           return
@@ -55,6 +59,8 @@ export function useArScene() {
   }
 
   function stop() {
+    window.removeEventListener('resize', syncSize)
+    resizeTarget = null
     renderer.stopLoop()
     camera.stop()
     marker.dispose()
@@ -62,6 +68,14 @@ export function useArScene() {
 
     if (state.value !== 'error')
       state.value = 'idle'
+  }
+
+  function syncSize() {
+    if (!resizeTarget)
+      return
+
+    renderer.resize()
+    camera.resize(resizeTarget)
   }
 
   return {
