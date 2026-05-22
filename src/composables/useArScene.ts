@@ -2,7 +2,6 @@ import type { CameraLifecycleState } from './ar/useCameraLifecycle'
 import { readonly, ref } from 'vue'
 import { useArRenderer } from './ar/useArRenderer'
 import { useCameraLifecycle } from './ar/useCameraLifecycle'
-import { useMarkerRoot } from './ar/useMarkerRoot'
 
 export type ArSceneState = CameraLifecycleState
 
@@ -12,7 +11,6 @@ export function useArScene() {
 
   const renderer = useArRenderer()
   const camera = useCameraLifecycle()
-  const marker = useMarkerRoot()
 
   async function start(container: HTMLElement) {
     state.value = 'requesting'
@@ -21,7 +19,6 @@ export function useArScene() {
     try {
       renderer.mount(container)
       await camera.start()
-      marker.create(renderer.scene)
       state.value = 'ready'
     }
     catch (cause) {
@@ -34,7 +31,6 @@ export function useArScene() {
   function stop() {
     renderer.stopLoop()
     camera.stop()
-    marker.dispose()
     renderer.dispose()
 
     if (state.value !== 'error')
