@@ -1,5 +1,5 @@
 import type { ArToolkitSource } from '@/vendor/ar-js/ar-threex.mjs'
-import { readonly, ref } from 'vue'
+import { readonly, ref, shallowReadonly } from 'vue'
 
 export type CameraLifecycleState = 'idle' | 'requesting' | 'ready' | 'denied' | 'error'
 
@@ -55,8 +55,8 @@ export function useCameraLifecycle() {
   return {
     error: readonly(error),
     resize,
-    source: readonly(source),
-    sourceElement: readonly(sourceElement),
+    source: shallowReadonly(source),
+    sourceElement: shallowReadonly(sourceElement),
     start,
     state: readonly(state),
     stop,
