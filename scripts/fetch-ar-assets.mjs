@@ -49,6 +49,16 @@ const ENTRIES = [
       return Buffer.from(await res.arrayBuffer())
     },
   },
+  {
+    name: 'patt.kanji',
+    dest: 'public/ar-js/patt.kanji',
+    fetch: async () => {
+      const res = await fetch(`${GITHUB_RAW}/patt.kanji`)
+      if (!res.ok)
+        throw new Error(`HTTP ${res.status} ${res.statusText}`)
+      return Buffer.from(await res.arrayBuffer())
+    },
+  },
 ]
 
 const force = process.argv.includes('--force')
