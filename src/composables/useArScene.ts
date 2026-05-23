@@ -1,5 +1,6 @@
 import type { MarkerConfig } from './ar/useMarkers'
 import { readonly, ref } from 'vue'
+import { publicAssetUrl } from './ar/publicAssetUrl'
 import { useArRenderer } from './ar/useArRenderer'
 import { useCameraLifecycle } from './ar/useCameraLifecycle'
 import { useMarkers } from './ar/useMarkers'
@@ -25,7 +26,7 @@ export function useArScene(configs: MarkerConfig[] = [], onFrame?: (delta: numbe
 
       const { ArToolkitContext } = await import('@/vendor/ar-js/ar-threex.mjs')
       const context = new ArToolkitContext({
-        cameraParametersUrl: '/ar-js/camera_para.dat',
+        cameraParametersUrl: publicAssetUrl('ar-js/camera_para.dat'),
         detectionMode: 'mono',
       })
 

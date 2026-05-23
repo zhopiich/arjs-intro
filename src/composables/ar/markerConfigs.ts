@@ -1,9 +1,10 @@
 import type { MarkerConfig } from './useMarkers'
 import * as THREE from 'three'
+import { publicAssetUrl } from './publicAssetUrl'
 
 const hiroConfig: MarkerConfig = {
   id: 'hiro',
-  patternUrl: '/ar-js/patt.hiro',
+  patternUrl: publicAssetUrl('ar-js/patt.hiro'),
   createContent: () => {
     const mesh = new THREE.Mesh(
       new THREE.BoxGeometry(0.6, 0.6, 0.6),
@@ -16,7 +17,7 @@ const hiroConfig: MarkerConfig = {
 
 const kanjiConfig: MarkerConfig = {
   id: 'kanji',
-  patternUrl: '/ar-js/patt.kanji',
+  patternUrl: publicAssetUrl('ar-js/patt.kanji'),
   createContent: () => {
     const mesh = new THREE.Mesh(
       new THREE.SphereGeometry(0.6, 32, 32),
