@@ -1,48 +1,59 @@
-# guinea-pig
+# AR.js
 
-This template should help get you started developing with Vue 3 in Vite.
+Marker-based AR viewer with multi-marker tracking.
 
-## Recommended IDE Setup
+## Demo
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+Three progressive stages:
 
-## Recommended Browser Setup
+- **Stage 1** — Hiro marker detection with cube overlay
+- **Stage 2** — Simultaneous multi-marker tracking (Hiro + Kanji) with distinct 3D content per marker
+- **Stage 3** — Per-marker Three.js animations (rotation, floating) driven by AR tracking state
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
-
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
+## Quick Start
 
 ```sh
 pnpm install
+pnpm dev --host 0.0.0.0
 ```
 
-### Compile and Hot-Reload for Development
+Access from a phone on the same network, or use a tunnel (Cloudflare, ngrok) to serve over HTTPS — camera access requires a secure context.
 
-```sh
-pnpm dev
+## Architecture
+
+```
+Vue route → ArSceneCanvas (viewport)
+  ├── Camera video layer (z-index 0)
+  ├── Three.js transparent canvas (z-index 1)
+  └── Status overlay (z-index 2)
+
+Three scene → N marker roots (one per tracked marker)
+  └── Marker content (geometry + material)
 ```
 
-### Type-Check, Compile and Minify for Production
+AR.js vendor build and calibration assets are fetched automatically on `postinstall`.
 
-```sh
-pnpm build
+## Project Structure
+
 ```
-
-### Run Unit Tests with [Vitest](https://vitest.dev/)
-
-```sh
-pnpm test:unit
+src/
+├── App.vue
+├── main.ts
+├── router/
+│   └── index.ts
+├── composables/
+│   ├── ar/
+│   │   ├── useArRenderer.ts       — Three.js scene, camera, RAF loop
+│   │   ├── useCameraLifecycle.ts  — AR.js webcam source lifecycle
+│   │   ├── useMarkers.ts          — N-marker tracking via ArMarkerControls
+│   │   ├── useMarkerAnimation.ts  — Time-based per-object animation
+│   │   └── markerConfigs.ts       — Shared marker definitions
+│   └── useArScene.ts              — Orchestrator: context, resize, loop
+├── views/
+│   ├── HomeView.vue
+│   ├── StageTwoView.vue
+│   └── StageThreeView.vue
+└── components/
+    ├── ar-viewer/ArSceneCanvas.vue
+    └── StageNav.vue
 ```
