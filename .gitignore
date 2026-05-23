@@ -38,3 +38,9 @@ __screenshots__/
 
 # Vite
 *.timestamp-*-*.mjs
+
+# Auto-generated AR.js assets (fetched by scripts/fetch-ar-assets.mjs)
+src/vendor/ar-js/*.mjs
+!src/vendor/ar-js/.gitkeep
+public/ar-js/*
+!public/ar-js/.gitkeep
