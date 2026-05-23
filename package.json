@@ -14,7 +14,8 @@
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
     "lint": "eslint",
-    "lint:fix": "eslint --fix"
+    "lint:fix": "eslint --fix",
+    "postinstall": "node scripts/fetch-ar-assets.mjs"
   },
   "dependencies": {
     "pinia": "^3.0.4",
