@@ -1,20 +1,27 @@
 <script setup lang="ts">
+import type { MarkerConfig } from '@/composables/ar/useMarkers'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useArScene } from '@/composables/useArScene'
 
+const props = defineProps<{
+  markerConfigs: MarkerConfig[]
+  onFrame?: (delta: number) => void
+}>()
+
 const container = ref<HTMLElement | null>(null)
-const { error, start, state, stop } = useArScene()
+const { error, markerRoots, start, state, stop, visibleMap } = useArScene(props.markerConfigs, props.onFrame)
 
 onMounted(async () => {
   if (!container.value)
     return
-
   await start(container.value)
 })
 
 onBeforeUnmount(() => {
   stop()
 })
+
+defineExpose({ markerRoots, visibleMap })
 </script>
 
 <template>
