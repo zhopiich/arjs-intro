@@ -1,21 +1,18 @@
-import type { CameraLifecycleState } from './ar/useCameraLifecycle'
+import type { MarkerConfig } from './ar/useMarkers'
 import { readonly, ref } from 'vue'
 import { useArRenderer } from './ar/useArRenderer'
 import { useCameraLifecycle } from './ar/useCameraLifecycle'
-import { useMarkerRoot } from './ar/useMarkerRoot'
+import { useMarkers } from './ar/useMarkers'
 
-export type ArSceneState = CameraLifecycleState
-
-const cameraParametersUrl = '/ar-js/camera_para.dat'
-
-export function useArScene() {
-  const state = ref<ArSceneState>('idle')
+export function useArScene(configs: MarkerConfig[] = [], onFrame?: (delta: number) => void) {
+  const state = ref<'idle' | 'requesting' | 'ready' | 'error'>('idle')
   const error = ref<Error | null>(null)
 
   const renderer = useArRenderer()
   const camera = useCameraLifecycle()
-  const marker = useMarkerRoot()
+  const markers = useMarkers(configs)
   let resizeTarget: HTMLElement | null = null
+  let lastTime = 0
 
   async function start(container: HTMLElement) {
     state.value = 'requesting'
@@ -28,7 +25,7 @@ export function useArScene() {
 
       const { ArToolkitContext } = await import('@/vendor/ar-js/ar-threex.mjs')
       const context = new ArToolkitContext({
-        cameraParametersUrl,
+        cameraParametersUrl: '/ar-js/camera_para.dat',
         detectionMode: 'mono',
       })
 
@@ -39,15 +36,24 @@ export function useArScene() {
         })
       })
 
-      await marker.create(renderer.scene, context)
+      await markers.create(renderer.scene, context)
       resizeTarget = container
       syncSize()
       window.addEventListener('resize', syncSize)
+
+      lastTime = performance.now()
       renderer.startLoop(() => {
         if (!camera.source.value?.ready || !camera.sourceElement.value)
           return
 
         context.update(camera.sourceElement.value)
+
+        if (onFrame) {
+          const now = performance.now()
+          const delta = (now - lastTime) / 1000
+          lastTime = now
+          onFrame(delta)
+        }
       })
 
       state.value = 'ready'
@@ -64,7 +70,7 @@ export function useArScene() {
     resizeTarget = null
     renderer.stopLoop()
     camera.stop()
-    marker.dispose()
+    markers.dispose()
     renderer.dispose()
 
     if (state.value !== 'error')
@@ -74,7 +80,6 @@ export function useArScene() {
   function syncSize() {
     if (!resizeTarget)
       return
-
     renderer.resize()
     if (renderer.domElement)
       camera.resize(renderer.domElement)
@@ -82,8 +87,10 @@ export function useArScene() {
 
   return {
     error: readonly(error),
+    markerRoots: markers.roots,
     start,
     state: readonly(state),
     stop,
+    visibleMap: markers.visibleMap,
   }
 }
