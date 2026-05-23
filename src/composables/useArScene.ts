@@ -24,6 +24,7 @@ export function useArScene() {
     try {
       renderer.mount(container)
       await camera.start()
+      camera.mountSourceElement(container)
 
       const { ArToolkitContext } = await import('@/vendor/ar-js/ar-threex.mjs')
       const context = new ArToolkitContext({
@@ -75,7 +76,8 @@ export function useArScene() {
       return
 
     renderer.resize()
-    camera.resize(resizeTarget)
+    if (renderer.domElement)
+      camera.resize(renderer.domElement)
   }
 
   return {

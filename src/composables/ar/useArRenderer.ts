@@ -13,6 +13,15 @@ export function useArRenderer() {
     renderer = new THREE.WebGLRenderer({
       alpha: true,
       antialias: true,
+      premultipliedAlpha: false,
+    })
+    renderer.setClearColor(0x000000, 0)
+    Object.assign(renderer.domElement.style, {
+      background: 'transparent',
+      inset: '0',
+      pointerEvents: 'none',
+      position: 'absolute',
+      zIndex: '1',
     })
     renderer.setPixelRatio(window.devicePixelRatio)
     resize()
@@ -60,6 +69,9 @@ export function useArRenderer() {
   return {
     camera,
     dispose,
+    get domElement() {
+      return renderer?.domElement ?? null
+    },
     mount,
     resize,
     scene,

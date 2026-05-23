@@ -31,19 +31,22 @@ onBeforeUnmount(() => {
 .ar-scene-canvas {
   position: relative;
   min-height: 100vh;
+  background: transparent;
   overflow: hidden;
 }
 
 .ar-scene-canvas__viewport {
   position: absolute;
+  z-index: 0;
   inset: 0;
+  background: transparent;
 }
 
 .ar-scene-canvas__status {
   position: absolute;
   left: 1rem;
   top: 1rem;
-  z-index: 1;
+  z-index: 2;
   display: flex;
   max-width: min(28rem, calc(100vw - 2rem));
   flex-direction: column;

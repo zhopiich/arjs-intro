@@ -16,11 +16,11 @@ export function useCameraLifecycle() {
     const { ArToolkitSource } = await import('@/vendor/ar-js/ar-threex.mjs')
     const nextSource = new ArToolkitSource({ sourceType: 'webcam' })
     source.value = nextSource
-    sourceElement.value = nextSource.domElement
 
     await new Promise<void>((resolve, reject) => {
       nextSource.init(
         () => {
+          sourceElement.value = nextSource.domElement
           state.value = 'ready'
           resolve()
         },
@@ -34,6 +34,21 @@ export function useCameraLifecycle() {
     })
   }
 
+  function mountSourceElement(target: HTMLElement) {
+    const element = sourceElement.value
+    if (!element)
+      return
+
+    Object.assign(element.style, {
+      inset: '0',
+      pointerEvents: 'none',
+      position: 'absolute',
+      zIndex: '0',
+    })
+
+    target.prepend(element)
+  }
+
   function resize(target: HTMLElement) {
     source.value?.onResizeElement()
     source.value?.copyElementSizeTo(target)
@@ -45,6 +60,7 @@ export function useCameraLifecycle() {
     if (isMediaStream(stream))
       stream.getTracks().forEach(track => track.stop())
 
+    element?.remove()
     source.value = null
     sourceElement.value = null
 
@@ -54,6 +70,7 @@ export function useCameraLifecycle() {
 
   return {
     error: readonly(error),
+    mountSourceElement,
     resize,
     source: shallowReadonly(source),
     sourceElement: shallowReadonly(sourceElement),

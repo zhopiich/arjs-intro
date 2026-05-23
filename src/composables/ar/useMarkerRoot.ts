@@ -4,6 +4,7 @@ import { readonly, ref } from 'vue'
 
 export function useMarkerRoot() {
   const visible = ref(false)
+  const patternUrl = '/ar-js/patt.hiro'
 
   let root: THREE.Group | null = null
   let cube: THREE.Mesh<THREE.BoxGeometry, THREE.MeshNormalMaterial> | null = null
@@ -25,7 +26,7 @@ export function useMarkerRoot() {
     scene.add(root)
 
     markerControls = new ArMarkerControls(context, root, {
-      preset: 'hiro',
+      patternUrl,
       type: 'pattern',
     })
     window.addEventListener('markerFound', handleMarkerFound)

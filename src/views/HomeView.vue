@@ -11,7 +11,7 @@ import ArSceneCanvas from '@/components/ar-viewer/ArSceneCanvas.vue'
 <style scoped>
 .home-view {
   min-height: 100vh;
-  background: #111;
+  background: transparent;
   color: #fff;
 }
 </style>
